@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<settings>
+  <application_title>Shard Update</application_title>
+  <projecturl>http://zuluhotel.net</projecturl>
+  <ultima_dir>.\</ultima_dir>
+  <shardname>UOShard</shardname>
+  <updates_page_url>updates.php</updates_page_url>
+  <runWhenFinished>0</runWhenFinished>
+  <user_agent>Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; .NET CLR 1.0.3705;)</user_agent>
+  <closeWhenFinished>1</closeWhenFinished>
+</settings>
