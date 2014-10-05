@@ -2,11 +2,17 @@
 # -*- coding: utf-8 -*-
 
 # deploy.py
-# Prepare and deploy updates for mul-updater
+#
+# This script archives and uploads updates to your web server.
+# Put all files that you want to be uploaded to the same directory
+# with this script
+#
+# Note: configure FTP settings in deploy.conf prior to running it
+# 
 # by AnDenixa, Fall 2013
 # Note: must be run in the folder containing files needs to be uploaded
 #
-# 5 October, 2012: No longer requires external 7zip
+# 5 October, 2012: No longer requires 7zip as external packer
 
 import sys
 import zipfile
