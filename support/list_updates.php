@@ -1,9 +1,15 @@
 <?php
-// this file must reside at your webserver 
-// folder containing update files	
+	
+////
+// list_updates.php
+//
+// Put this to your web server folder 
+// containing update files.
 //
 // By AnDenixa, Fall 2013
 // Zuluhotel.net files updater
+////
+
 
 $skip_names = array( basename( __FILE__ ), ".", "..", "error_log", ".htaccess" );
 
