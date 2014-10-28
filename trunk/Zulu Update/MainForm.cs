@@ -279,7 +279,9 @@ namespace Zulu_Update
                 return true;
             }
 
-            if ((new FileInfo(local_filename)).Length != Int32.Parse(remoteFileInfo["size"]))
+            var localfile_size = (new FileInfo(local_filename)).Length;
+
+            if ( (localfile_size < 1000000) || (localfile_size != Int32.Parse(remoteFileInfo["size"])) )
             {
                 Console.WriteLine("Size missmatch!");
                 return true;
