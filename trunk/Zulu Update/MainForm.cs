@@ -11,6 +11,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.Xml;
 using System.IO.Compression;
+using System.Security.Cryptography;
 
 
 namespace Zulu_Update
@@ -167,6 +168,7 @@ namespace Zulu_Update
                 remoteFileInfo.Add("filename", fileInfoReceived[0]);
                 remoteFileInfo.Add("size", fileInfoReceived[1]);
                 remoteFileInfo.Add("crc32b", fileInfoReceived[2]);
+                remoteFileInfo.Add("md5_hash", fileInfoReceived[3]);
                 remoteFileInfo.Add("local_filename", GetLocalFileName(remoteFileInfo["filename"]));                               
 
                 ((BackgroundWorker)sender).ReportProgress(1, new string(("Checking " + Path.GetFileName(remoteFileInfo["local_filename"])).ToCharArray()));
@@ -192,13 +194,16 @@ namespace Zulu_Update
                     }
 
                     var local_downloaded_filename = Path.Combine(getCfgValue("ultima_dir"), remoteFileInfo["filename"]);
+
+                    Console.WriteLine("renaming {0} -> {1}", local_downloaded_filename + ".part", local_downloaded_filename);
+                    File.Move(local_downloaded_filename + ".part", local_downloaded_filename);
+                                        
+
                     if(isZip( remoteFileInfo["filename"] )) {
                         Console.WriteLine("Unzipping: {0}", local_downloaded_filename );
-                        unzipFile( local_downloaded_filename + ".part" );
-                        File.Delete( local_downloaded_filename + ".part" );
-                    } else {
-                        Console.WriteLine("renaming {0} -> {1}", local_downloaded_filename + ".part", local_downloaded_filename);
-                        File.Move(local_downloaded_filename + ".part", local_downloaded_filename);
+                        
+                        unzipFile( local_downloaded_filename );
+                        File.Delete( local_downloaded_filename );                                            
                     }            
           
                 }                                             
@@ -266,6 +271,21 @@ namespace Zulu_Update
             return local_filename;
         }
 
+        private string GetLocalMD5Hash(string local_flename)
+        {
+            using (var md5 = MD5.Create())
+            {
+                using (var stream = File.OpenRead(local_flename))
+                {
+                 
+                    var md5_hash_bytes = md5.ComputeHash(stream);
+
+                    var res = BitConverter.ToString(md5_hash_bytes).Replace("-", "").ToLower();
+                    return res;
+                }
+            }
+        }
+
         bool IsLocalFileNeedsUpdating(Dictionary<string, string> remoteFileInfo)
         {
 
@@ -281,7 +301,7 @@ namespace Zulu_Update
 
             var localfile_size = (new FileInfo(local_filename)).Length;
 
-            if ( (localfile_size < 1000000) || (localfile_size != Int32.Parse(remoteFileInfo["size"])) )
+            if ( /*(localfile_size < 1000000) || */ localfile_size != Int32.Parse(remoteFileInfo["size"]) )
             {
                 Console.WriteLine("Size missmatch!");
                 return true;
@@ -302,6 +322,16 @@ namespace Zulu_Update
                 return false;
             }
 
+            if (remoteFileInfo.ContainsKey("md5_hash"))
+            {
+                Console.WriteLine("Local md5: {0}, remote md5: {1}", new Object[] {GetLocalMD5Hash(local_filename), remoteFileInfo["md5_hash"]});
+
+                if (GetLocalMD5Hash(local_filename) != remoteFileInfo["md5_hash"]) {
+                    Console.WriteLine("MD5 hash missmatch!");
+                    return false;
+                }
+
+            } else 
             if ((remoteFileInfo["crc32b"] != local_crc32) && (remoteFileInfo["crc32b"] != local_crc32.Substring(1) || local_crc32[0] != '0'))
             {
                 Console.WriteLine("crc32b misssmatch!");
@@ -393,10 +423,17 @@ namespace Zulu_Update
             return false;
         }
 
-        public void unzipFile(string filename)
+        public void unzipFile(string archive_name)
         {
             // Open an existing zip file for reading
-            ZipStorer zip = ZipStorer.Open(filename, FileAccess.Read);
+            ZipStorer zip = ZipStorer.Open(archive_name, FileAccess.Read);            
+
+            string local_filename = null;
+
+            if (Path.GetExtension(archive_name) == ".zip") // remove .zip extention
+            {
+                local_filename = Path.GetFileName(archive_name.Substring(0, archive_name.Length - 4));
+            }
 
             // Read the central directory collection
             List<ZipStorer.ZipFileEntry> dir = zip.ReadCentralDir();
@@ -405,7 +442,17 @@ namespace Zulu_Update
             foreach (ZipStorer.ZipFileEntry entry in dir)
             {
                 string zippedFilename = Path.GetFileName(entry.FilenameInZip);
-                zip.ExtractFile(entry, Path.Combine(Path.GetDirectoryName(filename), zippedFilename) );
+
+                //Console.WriteLine("Unzip zippedFilename: {0}", zippedFilename);
+                //Console.WriteLine("Unzip local_file: {0}", local_filename);
+
+                if (!zippedFilename.Equals(local_filename, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    Console.WriteLine("Unzip skipping file: {0}", zippedFilename);
+                    continue;
+                }
+
+                zip.ExtractFile(entry, Path.Combine(Path.GetDirectoryName(archive_name), zippedFilename));
 
                 if (zippedFilename == CFG_FILENAME)
                 {

@@ -14,11 +14,14 @@
 #
 # 5 October, 2012: No longer requires 7zip as external packer
 
+
 import sys
+import hashlib
 import zipfile
 import ftplib
 import ConfigParser
 import socket
+
 
 from multiprocessing import Pool, cpu_count
 from os import listdir, getcwd, stat, remove
@@ -27,11 +30,21 @@ from time import clock
 
 
 def compress( zip_name, filename, compression = 5 ):
-    sys.stdout.write('Compressing: {}\n'.format(basename(filename)))
-    sys.stdout.flush()
     
+    sys.stdout.write('Compressing: {}\n'.format(basename(filename)))
+    sys.stdout.flush()    
     file = zipfile.ZipFile(zip_name, "w")    
-    file.write(filename, basename(filename), zipfile.ZIP_DEFLATED)
+    
+    base_filename = basename(filename);
+    
+    file_obj = open(filename, 'rb')
+
+    file_md5 = hashlib.md5(file_obj.read()).hexdigest()    
+    file_obj.close()    
+    
+    file.writestr(base_filename+".md5", file_md5, zipfile.ZIP_STORED);    
+    file.write(filename, base_filename, zipfile.ZIP_DEFLATED)
+    
     file.close()
 
     
@@ -86,8 +99,7 @@ def main():
                 
     res.get()    
     pool.close()
-    pool.join()
-        
+    pool.join()                
                 
     print "\nConnecting to {} ..".format(cfg.get("settings", "FTP_ADDRESS"))
     
