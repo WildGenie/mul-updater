@@ -1,17 +1,12 @@
 <?php
 	
-////
-// list_updates.php
-//
-// Put this to your web server folder 
-// containing update files.
-//
 // By AnDenixa, Fall 2013
 // Zuluhotel.net files updater
-////
+//
+// Updated At January, 2015
+// Updated By AnDenix, added md5 hash support (reading form the archives)
 
-
-$skip_names = array( basename( __FILE__ ), ".", "..", "error_log", ".htaccess" );
+$skip_names = array( basename( __FILE__ ), ".", "..", "error_log", ".htaccess", "PHP_errors.log");
 
 if ($handle = opendir('.')) {
     while (false !== ($filename = readdir($handle))) {
@@ -19,7 +14,8 @@ if ($handle = opendir('.')) {
 			$ext = pathinfo($filename, PATHINFO_EXTENSION);
 			if ($ext=="zip") {
             	echo "$filename,".zipfile_filesize( $filename )
-            		.",".zipfile_crc32($filename)
+            		.",".zipfile_crc32( $filename )
+            		.",".zipfile_md5( $filename )
             		.PHP_EOL;				
 			} else {
             	echo "$filename,".filesize ( $filename )
@@ -40,6 +36,16 @@ function zipfile_filesize( $filename )
 	$result = $stats["size"];
 	$zip->close();
 	return $result;
+}
+
+function zipfile_md5( $filename )
+{		
+	$zip = new ZipArchive;		
+	$res = $zip->open($filename);
+	$filename = basename($filename, ".zip");		
+	$md5_hash = $zip->getFromName($filename.".md5");
+	$zip->close();	
+	return $md5_hash;
 }
 
 function zipfile_crc32( $filename )
