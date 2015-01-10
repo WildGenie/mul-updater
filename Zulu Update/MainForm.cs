@@ -168,7 +168,7 @@ namespace Zulu_Update
                 remoteFileInfo.Add("filename", fileInfoReceived[0]);
                 remoteFileInfo.Add("size", fileInfoReceived[1]);
                 remoteFileInfo.Add("crc32b", fileInfoReceived[2]);
-                remoteFileInfo.Add("md5_hash", fileInfoReceived[3]);
+                remoteFileInfo.Add("sha256", fileInfoReceived[3]);
                 remoteFileInfo.Add("local_filename", GetLocalFileName(remoteFileInfo["filename"]));                               
 
                 ((BackgroundWorker)sender).ReportProgress(1, new string(("Checking " + Path.GetFileName(remoteFileInfo["local_filename"])).ToCharArray()));
@@ -311,9 +311,12 @@ namespace Zulu_Update
             }
 
             string local_crc32 = null;
+            string local_sha256 = null;
+
             try
             {
                 local_crc32 = getFileCrc32(local_filename);
+                local_sha256 = GetFileHash(local_filename);
             }
             catch (IOException)
             {
@@ -325,20 +328,21 @@ namespace Zulu_Update
                 return false;
             }
 
-            if (remoteFileInfo.ContainsKey("md5_hash"))
+            if (remoteFileInfo.ContainsKey("sha256"))
             {
-                Console.WriteLine("Local md5: {0}, remote md5: {1}", new Object[] {GetFileHash(local_filename), remoteFileInfo["md5_hash"]});
+                Console.WriteLine("Local sha256: {0}, remote sha256: {1}", new Object[] { GetFileHash(local_filename), remoteFileInfo["sha256"] });
 
-                if (GetFileHash(local_filename) != remoteFileInfo["md5_hash"]) {
-                    Console.WriteLine("MD5 hash missmatch!");
-                    return false;
+                if (local_sha256 != remoteFileInfo["sha256"])
+                {
+                    Console.WriteLine("sha256 hash missmatch!");
+                    return true;
                 }
 
             } else 
             if ((remoteFileInfo["crc32b"] != local_crc32) && (remoteFileInfo["crc32b"] != local_crc32.Substring(1) || local_crc32[0] != '0'))
             {
-                Console.WriteLine("crc32b misssmatch!");
-                return false;
+                Console.WriteLine("crc32b missmatch!");
+                return true;
             }
 
             return false;
