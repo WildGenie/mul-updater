@@ -3,8 +3,9 @@
 // By AnDenixa, Fall 2013
 // Zuluhotel.net files updater
 //
-// Updated At January, 2015
-// Updated By AnDenix, added md5 hash support (reading form the archives)
+// Updated At 9 January, 2015
+// Updated By AnDenix, 
+//     added sha256 hash support (reading form the archives)
 
 $skip_names = array( basename( __FILE__ ), ".", "..", "error_log", ".htaccess", "PHP_errors.log");
 
@@ -15,7 +16,7 @@ if ($handle = opendir('.')) {
 			if ($ext=="zip") {
             	echo "$filename,".zipfile_filesize( $filename )
             		.",".zipfile_crc32( $filename )
-            		.",".zipfile_md5( $filename )
+            		.",".zipfile_sha256( $filename )
             		.PHP_EOL;				
 			} else {
             	echo "$filename,".filesize ( $filename )
@@ -38,14 +39,14 @@ function zipfile_filesize( $filename )
 	return $result;
 }
 
-function zipfile_md5( $filename )
+function zipfile_sha256( $filename )
 {		
 	$zip = new ZipArchive;		
 	$res = $zip->open($filename);
 	$filename = basename($filename, ".zip");		
-	$md5_hash = $zip->getFromName($filename.".md5");
+	$sha256_hash = $zip->getFromName($filename.".sha256");
 	$zip->close();	
-	return $md5_hash;
+	return $sha256_hash;
 }
 
 function zipfile_crc32( $filename )

@@ -271,16 +271,19 @@ namespace Zulu_Update
             return local_filename;
         }
 
-        private string GetLocalMD5Hash(string local_flename)
+        private string GetFileHash(string local_flename)
         {
-            using (var md5 = MD5.Create())
+
+            using (var hasher = SHA256.Create())
             {
                 using (var stream = File.OpenRead(local_flename))
                 {
-                 
-                    var md5_hash_bytes = md5.ComputeHash(stream);
 
-                    var res = BitConverter.ToString(md5_hash_bytes).Replace("-", "").ToLower();
+                    var md5_hash_bytes = hasher.ComputeHash(stream);
+
+                    var res = BitConverter.ToString(md5_hash_bytes);
+
+                    res = res.Replace("-", "").ToLower();
                     return res;
                 }
             }
@@ -324,9 +327,9 @@ namespace Zulu_Update
 
             if (remoteFileInfo.ContainsKey("md5_hash"))
             {
-                Console.WriteLine("Local md5: {0}, remote md5: {1}", new Object[] {GetLocalMD5Hash(local_filename), remoteFileInfo["md5_hash"]});
+                Console.WriteLine("Local md5: {0}, remote md5: {1}", new Object[] {GetFileHash(local_filename), remoteFileInfo["md5_hash"]});
 
-                if (GetLocalMD5Hash(local_filename) != remoteFileInfo["md5_hash"]) {
+                if (GetFileHash(local_filename) != remoteFileInfo["md5_hash"]) {
                     Console.WriteLine("MD5 hash missmatch!");
                     return false;
                 }
