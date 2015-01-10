@@ -31,21 +31,20 @@ from time import clock
 
 def compress( zip_name, filename, compression = 5 ):
     
-    sys.stdout.write('Compressing: {}\n'.format(basename(filename)))
-    sys.stdout.flush()    
-    file = zipfile.ZipFile(zip_name, "w")    
-    
     base_filename = basename(filename);
     
-    file_obj = open(filename, 'rb')
-
-    file_md5 = hashlib.md5(file_obj.read()).hexdigest()    
-    file_obj.close()    
+    sys.stdout.write('Compressing: {}\n'.format(base_filename))
+    sys.stdout.flush()   
+     
+    myzip = zipfile.ZipFile(zip_name, "w")            
     
-    file.writestr(base_filename+".md5", file_md5, zipfile.ZIP_STORED);    
-    file.write(filename, base_filename, zipfile.ZIP_DEFLATED)
+    with open(filename, 'rb') as fp:
+        file_hash = hashlib.sha256(fp.read()).hexdigest()
     
-    file.close()
+    myzip.writestr(base_filename+".sha256", file_hash, zipfile.ZIP_STORED);    
+    myzip.write(filename, base_filename, zipfile.ZIP_DEFLATED)
+    
+    myzip.close()
 
     
 def draw_ascii_progress(percent):
