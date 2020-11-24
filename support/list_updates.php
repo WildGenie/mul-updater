@@ -9,14 +9,13 @@
 
 $skip_names = array( basename( __FILE__ ), ".", "..", "error_log", ".htaccess", "PHP_errors.log");
 
-if ($handle = opendir('.')) {
+if ($handle = glob("./*.zip");) {
     while (false !== ($filename = readdir($handle))) {
         if (!in_array($filename, $skip_names)) {
 			$ext = pathinfo($filename, PATHINFO_EXTENSION);
 			if ($ext=="zip") {
             	echo "$filename,".zipfile_filesize( $filename )
             		.",".zipfile_crc32( $filename )
-            		.",".zipfile_sha256( $filename )
             		.PHP_EOL;				
 			} else {
             	echo "$filename,".filesize ( $filename )
