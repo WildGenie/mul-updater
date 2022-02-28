@@ -32,18 +32,18 @@ from time import clock
 def compress( zip_name, filename, compression = 5 ):
     
     base_filename = basename(filename);
-    
+
     sys.stdout.write('Compressing: {}\n'.format(base_filename))
     sys.stdout.flush()   
-     
+
     myzip = zipfile.ZipFile(zip_name, "w")            
-    
+
     with open(filename, 'rb') as fp:
         file_hash = hashlib.sha256(fp.read()).hexdigest()
-    
-    myzip.writestr(base_filename+".sha256", file_hash, zipfile.ZIP_STORED);    
+
+    myzip.writestr(f'{base_filename}.sha256', file_hash, zipfile.ZIP_STORED);
     myzip.write(filename, base_filename, zipfile.ZIP_DEFLATED)
-    
+
     myzip.close()
 
     
